@@ -43,13 +43,11 @@ class NetImage:
             return 'This net is already aligned!'
 
         startlen = len(self.assets[1])
-        padding = 2
-        if ((startlen // 5) % 2) == 0:
-            padding = 3
+        padding = 3
         for i in range(1, len(self.assets), 1):
             for j in range(startlen, 0, -1):
                 if (j < startlen) and ((j % 5) == 0):
-                    self.assets[i] = insert(self.assets[i], ' ' * padding, j)        #'~'
+                    self.assets[i] = insert(self.assets[i], '~' * padding, j)        #'~'
 
         startlen = len(self.assets[1])
         self.assets[0] = 4 * ' ' + (startlen-5) * '_'

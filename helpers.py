@@ -21,7 +21,8 @@ def print_partial_truth_table(list_of_tuples: list):
         i += 1
     print(res_str)
 
-def numbers_of_branches(net_list: list):
+
+def width_of_circuit(net_list: list):
     if type(net_list) == list:
         for net in net_list:
             if type(net) != Net:
@@ -33,6 +34,7 @@ def numbers_of_branches(net_list: list):
     for i in range(len(net_list)):
         width += len(net_list[i].node_lists)
     return width - i
+
 
 def insert (source_str, insert_str, pos):
     return source_str[:pos] + insert_str + source_str[pos:]
