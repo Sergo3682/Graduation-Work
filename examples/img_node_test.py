@@ -1,6 +1,6 @@
 from serialnodes import SerialNodes
 from net import Net
-from helpers import numbers_of_branches
+from helpers import width_of_circuit
 from image_node import NodeImage
 
 one = SerialNodes(['A'])

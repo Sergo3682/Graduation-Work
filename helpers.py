@@ -36,5 +36,5 @@ def width_of_circuit(net_list: list):
     return width - i
 
 
-def insert (source_str, insert_str, pos):
+def insert(source_str, insert_str, pos):
     return source_str[:pos] + insert_str + source_str[pos:]

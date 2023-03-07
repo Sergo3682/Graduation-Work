@@ -3,7 +3,7 @@ from serialnodes import SerialNodes
 
 class NodeImage:
     def __init__(self):
-        self.name = ''
+        self.name = None
         self.assets = []
 
     def gen_trans_image(self, name: str):
@@ -21,6 +21,8 @@ class NodeImage:
         for i in branch.nodes:
             self.assets.append(self.gen_trans_image(i))
             self.align_node()
+        self.add_gnd()
+        self.margin_left()
 
     def align_node(self):
         maxnamelen = 0
@@ -29,10 +31,18 @@ class NodeImage:
             maxnamelen = max(maxnamelen, len(i[1]))
         for i in self.assets:
             if len(i[1]) <= maxnamelen:
-                j = 0
                 for j in range(len(i)):
                     padding = maxnamelen - len(i[j])
-                    i[j] = padding*space + i[j]
+                    i[j] = padding * space + i[j]
+
+    def add_gnd(self):
+        if self.name.next_net is None:
+            self.assets.append([(len(self.assets[0][2]) - 1) * ' ' + '-', len(self.assets[0][2]) * ' ', len(self.assets[0][2]) * ' '])
+
+    def margin_left(self):
+        for i in self.assets:
+            for j in range(len(i)):
+                i[j] = ' ' * 3 + i[j]
 
     def print_node(self):
         for i in self.assets:

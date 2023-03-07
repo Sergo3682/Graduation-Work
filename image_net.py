@@ -1,16 +1,20 @@
 from net import Net
 from image_node import NodeImage
-from helpers import insert
 
 
 class NetImage:
-    def __init__(self):
+    def __init__(self, net: Net = None):
         self.name = ''
         self.assets = []
         self.aligned = False
+        if net is not None:
+            self.gen_net_image(net)
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.name})'
 
     def gen_net_image(self, net: Net):
-        self.name = net
+        self.name = str(net)
         self.assets = []
         branch = []
         printer = NodeImage()
@@ -42,14 +46,7 @@ class NetImage:
         if self.aligned:
             return 'This net is already aligned!'
 
-        startlen = len(self.assets[1])
-        padding = 3
-        for i in range(1, len(self.assets), 1):
-            for j in range(startlen, 0, -1):
-                if (j < startlen) and ((j % 5) == 0):
-                    self.assets[i] = insert(self.assets[i], '~' * padding, j)        #'~'
-
-        startlen = len(self.assets[1])
-        self.assets[0] = 4 * ' ' + (startlen-5) * '_'
-        self.assets[0] = insert(self.assets[0], '!', ((startlen - 5)//2 + 4))
+        first_trans_idx = self.assets[2].find('[')
+        connectors_len = (len(self.assets[2]) - first_trans_idx - 2) // 2
+        self.assets[0] = (first_trans_idx + 1) * ' ' + connectors_len * '_' + self.assets[0] + connectors_len * '_'
         self.aligned = True
