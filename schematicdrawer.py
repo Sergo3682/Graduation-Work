@@ -1,4 +1,27 @@
 from image_net import *
+from serialnodes import SerialNodes
+
+
+def get_serial_node_width(node: SerialNodes):
+    width = 1
+    nets = [node.next_net]
+    if nets[0] is not None:
+        if (len(nets[0].node_lists) % 2) != 0:
+            width -= 1
+        while len(nets) > 0:
+            for nodes in nets[0].node_lists:
+                print(nodes)
+                width += 1
+                if nodes.next_net is not None:
+                    nets.append(nodes.next_net)
+            nets.pop(0)
+    return width
+
+def get_list_of_widths_by_net(net: Net):
+    lst = []
+    for nodes in net.node_lists:
+        lst.append(get_serial_node_width(nodes))
+    return lst
 
 
 class SchematicDrawer:
@@ -33,10 +56,6 @@ class SchematicDrawer:
             if len(self.list_of_nets[i]) == 0:
                 self.list_of_nets.pop(i)
         self.schematic_assets_list = self.list_of_nets.copy()
-        self.gen_schematic_image()
 
-    def gen_schematic_image(self):
-        for i in range(len(self.schematic_assets_list)):
-            for j in range(len(self.schematic_assets_list[i])):
-                generator = NetImage(self.schematic_assets_list[i][j])
-                self.schematic_assets_list[i][j] = generator.get_net_image()
+    def memes(self):
+        print('купил мужик шляпу, надел, а она ему как раз\n')

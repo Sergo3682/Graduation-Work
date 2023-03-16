@@ -37,12 +37,14 @@ class NodeImage:
 
     def add_gnd(self):
         if self.name.next_net is None:
-            self.assets.append([(len(self.assets[0][2]) - 1) * ' ' + '-', len(self.assets[0][2]) * ' ', len(self.assets[0][2]) * ' '])
+            self.assets.append([(len(self.assets[0][2]) - 1) * ' ' + '-', len(self.assets[0][2]) * ' ',
+                                len(self.assets[0][2]) * ' '])
 
     def margin_left(self):
+        width = 3
         for i in self.assets:
             for j in range(len(i)):
-                i[j] = ' ' * 3 + i[j]
+                i[j] = ' ' * width + '@' + i[j]
 
     def print_node(self):
         for i in self.assets:

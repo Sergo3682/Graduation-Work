@@ -1,5 +1,6 @@
 from net import Net
 
+
 def is_pow_of_2(n):
     return (n != 0) and ((n & (n-1)) == 0)
 
@@ -22,18 +23,18 @@ def print_partial_truth_table(list_of_tuples: list):
     print(res_str)
 
 
-def width_of_circuit(net_list: list):
-    if type(net_list) == list:
-        for net in net_list:
-            if type(net) != Net:
-                raise TypeError('Your input must be \'list\' of \'Net()\'')
-    else:
-        raise TypeError('Your input must be \'list\' of \'Net()\'')
-    i = 0
-    width = 0
-    for i in range(len(net_list)):
-        width += len(net_list[i].node_lists)
-    return width - i
+#def width_of_circuit(net_list: list):
+#    if type(net_list) == list:
+#        for net in net_list:
+#            if type(net) != Net:
+#                raise TypeError('Your input must be \'list\' of \'Net()\'')
+#    else:
+#        raise TypeError('Your input must be \'list\' of \'Net()\'')
+#    i = 0
+#    width = 0
+#    for i in range(len(net_list)):
+#        width += len(net_list[i].node_lists)
+#    return width - i
 
 
 def insert(source_str, insert_str, pos):
