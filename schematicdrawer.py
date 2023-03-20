@@ -17,11 +17,10 @@ def get_serial_node_width(node: SerialNodes):
             nets.pop(0)
     return width
 
-def get_list_of_widths_by_net(net: Net):
-    lst = []
+
+def get_list_of_widths_by_net(net: Net, res_list: list):
     for nodes in net.node_lists:
-        lst.append(get_serial_node_width(nodes))
-    return lst
+        res_list.append(get_serial_node_width(nodes))
 
 
 class SchematicDrawer:
