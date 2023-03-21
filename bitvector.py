@@ -55,6 +55,12 @@ class BitVector(object):
             raise StopIteration
         return tmp
 
+    def __eq__(self, other):
+        if (self.val == other.val) and (self.size == other.size):
+            return True
+        else:
+            return False
+
     def calc_bits(self):
         zeros_num = 0
         ones_num = 0
