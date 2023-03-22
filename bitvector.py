@@ -61,6 +61,11 @@ class BitVector(object):
         else:
             return False
 
+    def remove_idx(self, idx):
+        if idx >= self.size:
+            raise KeyError('Bit index out of range')
+        return BitVector(self[idx+1:].val*(2**len(self[:idx])) + self[:idx].val, self[:idx].size + self[idx+1:].size)
+
     def calc_bits(self):
         zeros_num = 0
         ones_num = 0
