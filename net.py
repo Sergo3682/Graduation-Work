@@ -1,3 +1,6 @@
+import net
+
+
 class Net:
     def __init__(self, sn_list=None):
         self._node_lists = []
@@ -20,3 +23,8 @@ class Net:
     def __repr__(self):
         return f'{self.__class__.__name__}({self.node_lists})'
 
+    def __eq__(self, other):
+        if type(self) == type(other) == net.Net:
+            return self.node_lists == other.node_lists
+        else:
+            return type(self) == type(other) == type(None)

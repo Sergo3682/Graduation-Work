@@ -6,8 +6,8 @@ from serialnodes import SerialNodes
 
 
 def lazy_me():
-    bv = BitVector(0b1010011101100110, 16)
-    tt = TruthTable(bv, ['A', 'B', 'C', 'D'])
+    bv = BitVector(0b01110010, 8)
+    tt = TruthTable(bv, ['A', 'B', 'C'])
     global sc
     sc = SchematicBuilder(tt)
 
@@ -20,8 +20,8 @@ class SchematicBuilder:
         self.input_names = self.truth_table.input_names.copy()
         self.input_names.reverse()
 
-        self.netlist = [Net()]
-        self.nodelist = []
+        self.pd_netlist = [Net()]
+        self.pu_netlist = [Net()]
 
     def calc_in_bits_leading_to_res(self, out_val):
         rows_list = self.truth_table.get_rows_by_value(out_val)
@@ -54,7 +54,7 @@ class SchematicBuilder:
             tmp_ones_name = ''
             lst_copy = lst.copy()
 
-            for col in range(lst[0].size):
+            for col in range(lst[0].size-1, -1, -1):
                 tmp_ones = 0
                 tmp_zeroes = 0
                 for row in range(len(lst)):
@@ -68,7 +68,7 @@ class SchematicBuilder:
                 if tmp_zeroes > max_zeroes_in_column:
                     max_zeroes_in_column = tmp_zeroes
                     tmp_zeroes_name = '!' + names[col]
-            self.netlist.append(Net())
+            self.pd_netlist.append(Net())
             if max_zeroes_in_column > max_ones_in_column:
                 max_name = tmp_zeroes_name
                 lst_copy = self.grouping(lst_copy, names.index(max_name[1:]), 0)
@@ -84,7 +84,7 @@ class SchematicBuilder:
                 lst_copy = self.list_of_bv_idx_removing(lst_copy, names.index(max_name))
 #                print(f'{max_ones_in_column}\t{tmp_ones_name}')
 
-            self.netlist[idx].node_lists.append(SerialNodes([f'{max_name}'], self.netlist[idx + 1]))
+            self.pd_netlist[idx].node_lists.append(SerialNodes([f'{max_name}'], self.pd_netlist[idx + 1]))
 
             if max_name[0] == '!':
                 max_name = max_name[1:]
@@ -92,18 +92,16 @@ class SchematicBuilder:
             names_copy = names.copy()
             names_copy.remove(max_name)
 
-            #for i in lst_copy:
-            #   lst.remove(i)
             print(lst_copy, len(lst_copy))
             print(names_copy, len(names_copy))
             self.algorithm_pd(lst_copy, names_copy, idx+1)
             if len(lst) == 1:
-                self.netlist[idx].node_lists.append(SerialNodes(self.gen_one_line_branch_pd(lst[0], names), None))
+                self.pd_netlist[idx].node_lists.append(SerialNodes(self.gen_one_line_branch_pd(lst[0], names), None))
 
     @staticmethod
     def gen_one_line_branch_pd(bv: BitVector, names):
         nodes = []
-        for i in range(bv.size):
+        for i in range(bv.size-1, -1, -1):
             if bv[i] == 1:
                 nodes.append(names[i])
             else:
@@ -135,6 +133,12 @@ class SchematicBuilder:
             checker = False
         return ans
 
+    def next_net_fixer(self):
+        for net in self.pd_netlist:
+            for node in net.node_lists:
+                if node.next_net == Net([]):
+                    node.next_net = None
+
     def build_pull_down_network(self):
         if self.is_inverting_needed():
             self.truth_table = self.truth_table.invert()
@@ -143,4 +147,8 @@ class SchematicBuilder:
         original_row_list = self.list_of_tuples_to_list_of_bitvectors(self.truth_table.get_rows_by_value(0))
         cp_list = original_row_list.copy()
         self.algorithm_pd(cp_list, self.input_names)
-        #return cp_list
+        self.next_net_fixer()
+
+    def build_pull_up_network(self):
+        original_row_list = self.list_of_tuples_to_list_of_bitvectors(self.truth_table.get_rows_by_value(1))
+        cp_list = original_row_list.copy()
