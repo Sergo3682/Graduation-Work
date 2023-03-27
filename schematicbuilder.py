@@ -7,7 +7,7 @@ from net_walker import NetWalker
 
 
 def lazy_me():
-    bv = BitVector(0b1000, 4) #0b01110010, 8
+    bv = BitVector(0b1110, 4) #0b01110010, 8
     tt = TruthTable(bv, ['A', 'B'])
     global sc
     sc = SchematicBuilder(tt)
@@ -47,13 +47,22 @@ class SchematicBuilder:
             lst[i] = lst[i][0]
         return lst
 
-    def algorithm(self, lst: [BitVector], names: [str], idx, network: str):
+    def algorithm(self, lst: [BitVector], names: [str], idx, network: str, nesting_idx=0):
         if not self.complete_set_of_combination(lst):
             netlist = []
             if network == 'pull_down':
                 netlist = self.pd_netlist
             elif network == 'pull_up':
                 netlist = self.pu_netlist
+
+            print(self.complete_set_of_combination(lst))
+            print(f'{len(lst)}+    {network}')
+
+            if len(lst) == 1:
+                print(f'here + {network}')
+                netlist[idx].node_lists.append(SerialNodes(self.gen_one_line_branch(lst[0], names, network), None))
+                return
+
             max_name = ''
             max_ones_in_column = 0
             max_zeroes_in_column = 0
@@ -123,7 +132,7 @@ class SchematicBuilder:
                         lst.remove(i)
                     lst_copy = self.list_of_bv_idx_removing(lst_copy, names.index(tmp_name))
 
-            netlist[idx].node_lists.append(SerialNodes([f'{max_name}'], netlist[idx + 1]))
+            netlist[idx].node_lists.append(SerialNodes([f'{max_name}'], netlist[idx + 1 + nesting_idx]))
 
             if max_name[0] == '!':
                 max_name = max_name[1:]
@@ -131,9 +140,12 @@ class SchematicBuilder:
             names_copy = names.copy()
             names_copy.remove(max_name)
 
-            self.algorithm(lst_copy, names_copy, idx+1, network)
+            self.algorithm(lst_copy, names_copy, idx + 1 + nesting_idx, network, nesting_idx)
             if len(lst) == 1:
                 netlist[idx].node_lists.append(SerialNodes(self.gen_one_line_branch(lst[0], names, network), None))
+
+            if len(lst) > 1:
+                self.algorithm(lst, names, idx, network, nesting_idx + 1)
 
     @staticmethod
     def gen_one_line_branch(bv: BitVector, names, network):
@@ -169,11 +181,15 @@ class SchematicBuilder:
     def complete_set_of_combination(lst: [BitVector]):
         ans = True
         checker = False
-        for num in range(log_2(len(lst[0]))):
+#        for num in range(log_2(len(lst[0]))):
+        for num in range(2**lst[0].size):
             for bv in lst:
-                checker = (num == bv.val)
+                if num == bv.val:
+                    checker = True
             ans = ans and checker
             checker = False
+        if ans == True:
+            print(f'\t\t{lst}')
         return ans
 
     @staticmethod
@@ -195,6 +211,7 @@ class SchematicBuilder:
 
     def build_pull_up_network(self):
         original_row_list = self.list_of_tuples_to_list_of_bitvectors(self.truth_table.get_rows_by_value(1))
+        print(original_row_list)
         cp_list = original_row_list.copy()
         self.algorithm(cp_list, self.input_names, 0, 'pull_up')
         self.next_net_fixer(self.pu_netlist)
