@@ -3,13 +3,16 @@ from bitvector import BitVector
 from net import Net
 from helpers import log_2
 from serialnodes import SerialNodes
+from net_walker import NetWalker
 
 
 def lazy_me():
-    bv = BitVector(0b01110010, 8)
-    tt = TruthTable(bv, ['A', 'B', 'C'])
+    bv = BitVector(0b1000, 4) #0b01110010, 8
+    tt = TruthTable(bv, ['A', 'B'])
     global sc
     sc = SchematicBuilder(tt)
+    sc.build_pull_down_network()
+    sc.build_pull_up_network()
 
 
 class SchematicBuilder:
@@ -44,10 +47,14 @@ class SchematicBuilder:
             lst[i] = lst[i][0]
         return lst
 
-    def algorithm_pd(self, lst: [BitVector], names: [str], idx=0):
+    def algorithm(self, lst: [BitVector], names: [str], idx, network: str):
         if not self.complete_set_of_combination(lst):
-            print(idx)
-
+            netlist = []
+            if network == 'pull_down':
+                netlist = self.pd_netlist
+            elif network == 'pull_up':
+                netlist = self.pu_netlist
+            max_name = ''
             max_ones_in_column = 0
             max_zeroes_in_column = 0
             tmp_zeroes_name = ''
@@ -64,27 +71,59 @@ class SchematicBuilder:
                         tmp_ones += 1
                 if tmp_ones > max_ones_in_column:
                     max_ones_in_column = tmp_ones
-                    tmp_ones_name = names[col]
+                    if network == 'pull_down':
+                        tmp_ones_name = names[col]
+                    elif network == 'pull_up':
+                        tmp_ones_name = '!' + names[col]
                 if tmp_zeroes > max_zeroes_in_column:
                     max_zeroes_in_column = tmp_zeroes
-                    tmp_zeroes_name = '!' + names[col]
-            self.pd_netlist.append(Net())
-            if max_zeroes_in_column > max_ones_in_column:
-                max_name = tmp_zeroes_name
-                lst_copy = self.grouping(lst_copy, names.index(max_name[1:]), 0)
-                for i in lst_copy:
-                    lst.remove(i)
-                lst_copy = self.list_of_bv_idx_removing(lst_copy, names.index(max_name[1:]))
-#                print(f'{max_zeroes_in_column}\t{tmp_zeroes_name}')
-            else:
-                max_name = tmp_ones_name
-                lst_copy = self.grouping(lst_copy, names.index(max_name), 1)
-                for i in lst_copy:
-                    lst.remove(i)
-                lst_copy = self.list_of_bv_idx_removing(lst_copy, names.index(max_name))
-#                print(f'{max_ones_in_column}\t{tmp_ones_name}')
+                    if network == 'pull_down':
+                        tmp_zeroes_name = '!' + names[col]
+                    elif network == 'pull_up':
+                        tmp_zeroes_name = names[col]
+            netlist.append(Net())
 
-            self.pd_netlist[idx].node_lists.append(SerialNodes([f'{max_name}'], self.pd_netlist[idx + 1]))
+            if network == 'pull_down':
+                if max_zeroes_in_column > max_ones_in_column:
+                    max_name = tmp_zeroes_name
+                    tmp_name = max_name
+                    if max_name[0] == '!':
+                        tmp_name = max_name[1:]
+                    lst_copy = self.grouping(lst_copy, names.index(tmp_name), 0)
+                    for i in lst_copy:
+                        lst.remove(i)
+                    lst_copy = self.list_of_bv_idx_removing(lst_copy, names.index(tmp_name))
+                else:
+                    max_name = tmp_ones_name
+                    tmp_name = max_name
+                    if max_name[0] == '!':
+                        tmp_name = max_name[1:]
+                    lst_copy = self.grouping(lst_copy, names.index(tmp_name), 1)
+                    for i in lst_copy:
+                        lst.remove(i)
+                    lst_copy = self.list_of_bv_idx_removing(lst_copy, names.index(tmp_name))
+
+            if network == 'pull_up':
+                if max_zeroes_in_column >= max_ones_in_column:
+                    max_name = tmp_zeroes_name
+                    tmp_name = max_name
+                    if max_name[0] == '!':
+                        tmp_name = max_name[1:]
+                    lst_copy = self.grouping(lst_copy, names.index(tmp_name), 0)
+                    for i in lst_copy:
+                        lst.remove(i)
+                    lst_copy = self.list_of_bv_idx_removing(lst_copy, names.index(tmp_name))
+                else:
+                    max_name = tmp_ones_name
+                    tmp_name = max_name
+                    if max_name[0] == '!':
+                        tmp_name = max_name[1:]
+                    lst_copy = self.grouping(lst_copy, names.index(tmp_name), 1)
+                    for i in lst_copy:
+                        lst.remove(i)
+                    lst_copy = self.list_of_bv_idx_removing(lst_copy, names.index(tmp_name))
+
+            netlist[idx].node_lists.append(SerialNodes([f'{max_name}'], netlist[idx + 1]))
 
             if max_name[0] == '!':
                 max_name = max_name[1:]
@@ -92,20 +131,24 @@ class SchematicBuilder:
             names_copy = names.copy()
             names_copy.remove(max_name)
 
-            print(lst_copy, len(lst_copy))
-            print(names_copy, len(names_copy))
-            self.algorithm_pd(lst_copy, names_copy, idx+1)
+            self.algorithm(lst_copy, names_copy, idx+1, network)
             if len(lst) == 1:
-                self.pd_netlist[idx].node_lists.append(SerialNodes(self.gen_one_line_branch_pd(lst[0], names), None))
+                netlist[idx].node_lists.append(SerialNodes(self.gen_one_line_branch(lst[0], names, network), None))
 
     @staticmethod
-    def gen_one_line_branch_pd(bv: BitVector, names):
+    def gen_one_line_branch(bv: BitVector, names, network):
         nodes = []
         for i in range(bv.size-1, -1, -1):
-            if bv[i] == 1:
-                nodes.append(names[i])
-            else:
-                nodes.append('!' + names[i])
+            if network == 'pull_down':
+                if bv[i] == 1:
+                    nodes.append(names[i])
+                else:
+                    nodes.append('!' + names[i])
+            elif network == 'pull_up':
+                if bv[i] == 0:
+                    nodes.append(names[i])
+                else:
+                    nodes.append('!' + names[i])
         return nodes
 
     @staticmethod
@@ -133,8 +176,9 @@ class SchematicBuilder:
             checker = False
         return ans
 
-    def next_net_fixer(self):
-        for net in self.pd_netlist:
+    @staticmethod
+    def next_net_fixer(lst):
+        for net in lst:
             for node in net.node_lists:
                 if node.next_net == Net([]):
                     node.next_net = None
@@ -146,9 +190,32 @@ class SchematicBuilder:
             print('INVERTED!!!!!!!!')
         original_row_list = self.list_of_tuples_to_list_of_bitvectors(self.truth_table.get_rows_by_value(0))
         cp_list = original_row_list.copy()
-        self.algorithm_pd(cp_list, self.input_names)
-        self.next_net_fixer()
+        self.algorithm(cp_list, self.input_names, 0, 'pull_down')
+        self.next_net_fixer(self.pd_netlist)
 
     def build_pull_up_network(self):
         original_row_list = self.list_of_tuples_to_list_of_bitvectors(self.truth_table.get_rows_by_value(1))
         cp_list = original_row_list.copy()
+        self.algorithm(cp_list, self.input_names, 0, 'pull_up')
+        self.next_net_fixer(self.pu_netlist)
+
+    def wor_checker(self, net: Net):
+        for name in self.input_names:
+            one = two = False
+            for sn in net.node_lists:
+                for sn_name in sn.nodes:
+                    if sn_name == name:
+                        one = True
+                    if sn_name == '!' + name:
+                        two = True
+            if one and two:
+                self.remove_wor(net, '!' + name)
+
+    @staticmethod
+    def remove_wor(net: Net, name):
+        for sn in net.node_lists:
+            for i in sn.nodes:
+                if i == name:
+                    sn.nodes.remove(i)
+
+#todo wor_checker(): TEST with Net_Walker class for automatic checking
