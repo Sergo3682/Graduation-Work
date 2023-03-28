@@ -4,16 +4,30 @@ from net import Net
 from helpers import log_2
 from serialnodes import SerialNodes
 from net_walker import NetWalker
+from image_net import NetImage
 
 
 def lazy_me():
-    bv = BitVector(0b1110, 4) #0b01110010, 8
-    tt = TruthTable(bv, ['A', 'B'])
+    bv = BitVector(0b00110100, 8) #0b01110010, 8
+    tt = TruthTable(bv, ['A', 'B', 'C'])
     global sc
     sc = SchematicBuilder(tt)
     sc.build_pull_down_network()
     sc.build_pull_up_network()
 
+    ni = NetImage(sc.pd_netlist[0])
+    ni.print_net_image()
+    ni = NetImage(sc.pd_netlist[0].node_lists[0].next_net)
+    ni.print_net_image()
+
+    print('_____')
+
+    ni = NetImage(sc.pu_netlist[0])
+    ni.print_net_image()
+    ni = NetImage(sc.pu_netlist[0].node_lists[0].next_net)
+    ni.print_net_image()
+    ni = NetImage(sc.pu_netlist[0].node_lists[1].next_net)
+    ni.print_net_image()
 
 class SchematicBuilder:
     def __init__(self, input_truth_table: TruthTable):
@@ -132,6 +146,8 @@ class SchematicBuilder:
                         lst.remove(i)
                     lst_copy = self.list_of_bv_idx_removing(lst_copy, names.index(tmp_name))
 
+            print(f'{idx}, {idx+1+nesting_idx}')
+
             netlist[idx].node_lists.append(SerialNodes([f'{max_name}'], netlist[idx + 1 + nesting_idx]))
 
             if max_name[0] == '!':
@@ -145,6 +161,7 @@ class SchematicBuilder:
                 netlist[idx].node_lists.append(SerialNodes(self.gen_one_line_branch(lst[0], names, network), None))
 
             if len(lst) > 1:
+                netlist.append(Net())
                 self.algorithm(lst, names, idx, network, nesting_idx + 1)
 
     @staticmethod
