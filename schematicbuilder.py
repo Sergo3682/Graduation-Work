@@ -15,19 +15,6 @@ def lazy_me():
     sc.build_pull_down_network()
     sc.build_pull_up_network()
 
-    ni = NetImage(sc.pd_netlist[0])
-    ni.print_net_image()
-    ni = NetImage(sc.pd_netlist[0].node_lists[0].next_net)
-    ni.print_net_image()
-
-    print('_____')
-
-    ni = NetImage(sc.pu_netlist[0])
-    ni.print_net_image()
-    ni = NetImage(sc.pu_netlist[0].node_lists[0].next_net)
-    ni.print_net_image()
-    ni = NetImage(sc.pu_netlist[0].node_lists[1].next_net)
-    ni.print_net_image()
 
 class SchematicBuilder:
     def __init__(self, input_truth_table: TruthTable):
@@ -205,7 +192,7 @@ class SchematicBuilder:
                     checker = True
             ans = ans and checker
             checker = False
-        if ans == True:
+        if ans:
             print(f'\t\t{lst}')
         return ans
 
