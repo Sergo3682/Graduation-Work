@@ -7,6 +7,7 @@ class Net:
         self.parent_node = None
         if sn_list is not None:
             self.node_lists = sn_list
+        self.id = 0
 
     @property
     def node_lists(self):
