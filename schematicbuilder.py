@@ -199,3 +199,10 @@ class SchematicBuilder:
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self.truth_table.__repr__()})'
+
+    @staticmethod
+    def get_inverted_inputs(origin_net, res_lst):
+        for sn in origin_net.node_lists:
+            for inst in sn.nodes:
+                if inst[0] == '!' and inst[1:] not in res_lst:
+                    res_lst.append(inst[1:])
