@@ -1,9 +1,12 @@
 from truthtable import TruthTable
 from bitvector import BitVector
-
-tt = None
+from schematicbuilder import SchematicBuilder
+from image_net import NetImage
+from parser import Parser
 
 if __name__ == '__main__':
-    tt = TruthTable(BitVector(0x97, 8))
-
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    bv = BitVector(0b00101101, 8)
+    tt = TruthTable(bv, ['A', 'B', 'C'])
+    sb = SchematicBuilder(tt)
+    sb.build_pull_down_network()
+    sb.build_pull_up_network()
