@@ -2,16 +2,6 @@ from truthtable import TruthTable
 from bitvector import BitVector
 from net import Net
 from serialnodes import SerialNodes
-from image_net import NetImage
-
-
-def lazy_me():
-    bv = BitVector(0b11101000, 8)
-    tt = TruthTable(bv, ['CI', 'A', 'B'])
-    global sc
-    sc = SchematicBuilder(tt)
-    sc.build_pull_down_network()
-    sc.build_pull_up_network()
 
 
 class SchematicBuilder:
@@ -24,9 +14,6 @@ class SchematicBuilder:
 
         self.pd_netlist = [Net()]
         self.pu_netlist = [Net()]
-
-        self.next_idx = 0
-        self.idx_padding = 0
 
     def calc_in_bits_leading_to_res(self, out_val):
         rows_list = self.truth_table.get_rows_by_value(out_val)
@@ -210,23 +197,5 @@ class SchematicBuilder:
         self.algorithm(cp_list, self.input_names, 0, 'pull_up')
         self.next_net_fixer(self.pu_netlist)
 
-    def wor_checker(self, net: Net):
-        for name in self.input_names:
-            one = two = False
-            for sn in net.node_lists:
-                for sn_name in sn.nodes:
-                    if sn_name == name:
-                        one = True
-                    if sn_name == '!' + name:
-                        two = True
-            if one and two:
-                self.remove_wor(net, '!' + name)
-
-    @staticmethod
-    def remove_wor(net: Net, name):
-        for sn in net.node_lists:
-            for i in sn.nodes:
-                if i == name:
-                    sn.nodes.remove(i)
-
-# todo wor_checker(): TEST with Net_Walker class for automatic checking
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.truth_table.__repr__()})'
