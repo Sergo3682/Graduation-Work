@@ -1,3 +1,4 @@
+
 class Circuit:
     def __init__(self):
         self.instances = []
@@ -24,29 +25,29 @@ class Circuit:
 
 
 class Instance:
-    def __init__(self):
-        self.type = ''
-        self.name = ''
-        self.connections = []
-        self.value = None
-        self.model = None
+    def __init__(self, inst_type, name, connectors: [str], model=None, value=None):
+        self.type = inst_type
+        self.name = name
+        self.connections = connectors
+        if (model is not None) and (value is not None):
+            raise ValueError('"model" and "value" cannot be defined at the same time!')
+        if model is not None:
+            self.model = model
+            self.value = None
+        if value is not None:
+            self.model = None
+            self.value = value
 
     def __str__(self):
-        res = 'Type: '
+        res = ''
         res += self.type
-        res += '; Name: '
-        res += self.name
-        if self.value is None:
-            res += '; Model: '
-            res += str(self.model)
-        else:
-            res += '; Value: '
-            res += str(self.value)
-        res += '; Cons: '
+        res += self.name + ' '
         for con in self.connections:
-            res += str(con)
-            res += ' '
-        return res
+            res += con + ' '
+        if self.value is None:
+            res += self.model
+        else:
+            res += self.value
 
 
 class Net:
