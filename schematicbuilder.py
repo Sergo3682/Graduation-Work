@@ -119,6 +119,8 @@ class SchematicBuilder:
 
             netlist[idx].node_lists.append(SerialNodes([f'{max_name}'], netlist[len(netlist)-1]))
 
+            netlist[idx].id = f'{network[5]}{idx}'
+
             if max_name[0] == '!':
                 max_name = max_name[1:]
 
