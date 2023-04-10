@@ -1,29 +1,3 @@
-
-class Circuit:
-    def __init__(self):
-        self.instances = []
-        self.nets = []
-
-    def get_net_by_name(self, name):
-        for net in self.nets:
-            if net.name == name:
-                return net
-        return None
-
-    def __str__(self):
-        res = ''
-        res += 'Insts: \n'
-        for inst in self.instances:
-            res += str(inst)
-            res += '\n'
-        res += 'Nets: \n'
-        for net in self.nets:
-            res += str(net)
-            res += ' '
-        res += '\n'
-        return res
-
-
 class Instance:
     def __init__(self, inst_type, name, connectors: [str], model=None, value=None):
         self.type = inst_type
@@ -31,6 +5,8 @@ class Instance:
         self.connections = connectors
         if (model is not None) and (value is not None):
             raise ValueError('"model" and "value" cannot be defined at the same time!')
+        if (model is None) and (value is None):
+            raise ValueError('"model" or "value" must be defined')
         if model is not None:
             self.model = model
             self.value = None
@@ -48,14 +24,11 @@ class Instance:
             res += self.model
         else:
             res += self.value
+        return res
 
-
-class Net:
-    def __init__(self):
-        self.name = ''
-        
-    def __str__(self):
-        return self.name
-
-    def __eq__(self, other):
-        return self.name == other.name
+    def __repr__(self):
+        if self.value is None:
+            optional = f"'{self.model}'"
+        else:
+            optional = f"model=None, value='{self.value}'"
+        return f"{self.__class__.__name__}({self.type}, {self.name}, {self.connections}, {optional})"
