@@ -32,3 +32,6 @@ class Instance:
         else:
             optional = f"model=None, value='{self.value}'"
         return f"{self.__class__.__name__}({self.type}, {self.name}, {self.connections}, {optional})"
+
+    def replace(self):
+        pass #todo
