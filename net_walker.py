@@ -2,8 +2,8 @@ from net import Net
 
 
 class NetWalker:
-    def __init__(self, root: Net):
-        self.root_net: Net = root
+    def __init__(self):
+        pass
 
     def walk(self, net, sn_action_fn=None, sn_fn_kwargs=None, net_action_fn=None, net_fn_kwargs=None):
         if net_action_fn is not None:
