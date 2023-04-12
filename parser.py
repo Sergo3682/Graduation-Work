@@ -86,12 +86,14 @@ class Parser:
             self.name_idx += 1
             cons = [name, name[1:], '0', '0']
             pd_not = Instance('X', instance_name, cons, self.nfet)
+            self.spice_instances.append(pd_not)
             print(pd_not, file=self.fd)
 
             instance_name = f'M{self.name_idx}'
             self.name_idx += 1
             cons = [name, name[1:], 'VCC', 'VCC']
             pu_not = Instance('X', instance_name, cons, self.pfet)
+            self.spice_instances.append(pu_not)
             print(pu_not, file=self.fd)
 
     def gen_vcc(self):
@@ -104,7 +106,7 @@ class Parser:
         print(vcc, file=self.fd)
 
     def gen_pulse(self):
-        period = 50
+        period = 100
         input_names = self.builder.truth_table.input_names.copy()
         input_names.reverse()
         for i_n in input_names:
@@ -120,22 +122,45 @@ class Parser:
     def gen_control(self, tstep, tstop):
         print('.control', file=self.fd)
         print(f'tran {tstep}n {tstop}n', file=self.fd)
-        self.fd.write('plot ')
+        self.fd.write('plot')
         for names in self.builder.truth_table.input_names:
-            self.fd.write(names + ' ')
-        self.fd.write('Q\n')
+            self.fd.write(' ' + names)
+        self.fd.write('\n')
+        print('plot Q', file=self.fd)
         print('.endc', file=self.fd)
+
+    def gen_out_not(self):
+        instance_name = f'M{self.name_idx}'
+        self.name_idx += 1
+        cons = ['Q', 'nQ', '0', '0']
+        pd_not = Instance('X', instance_name, cons, self.nfet)
+        self.spice_instances.append(pd_not)
+
+        instance_name = f'M{self.name_idx}'
+        self.name_idx += 1
+        cons = ['Q', 'nQ', 'VCC', 'VCC']
+        pu_not = Instance('X', instance_name, cons, self.pfet)
+        self.spice_instances.append(pu_not)
 
     def parse(self):
         print(self.lib, file=self.fd)
         gnd = '0'
         vcc = 'VCC'
-        nw = NetWalker(self.pd_root)
+        nw = NetWalker()
         nw.walk(self.pd_root, sn_action_fn=None, sn_fn_kwargs=None, net_action_fn=self.spice_instances_filling,
                 net_fn_kwargs={'bulk': gnd, 'model': self.nfet})
-        nw = NetWalker(self.pu_root)
         nw.walk(self.pu_root, sn_action_fn=None, sn_fn_kwargs=None, net_action_fn=self.spice_instances_filling,
                 net_fn_kwargs={'bulk': vcc, 'model': self.pfet})
+
+        if self.builder.inverted:
+            for inst in self.spice_instances:
+                inst.replace_cons(f'{self.pd_root.id}', 'nQ')
+                inst.replace_cons(f'{self.pu_root.id}', 'nQ')
+            self.gen_out_not()
+        else:
+            for inst in self.spice_instances:
+                inst.replace_cons(f'{self.pd_root.id}', 'Q')
+                inst.replace_cons(f'{self.pu_root.id}', 'Q')
 
         for inst in self.spice_instances:
             print(inst, file=self.fd)
