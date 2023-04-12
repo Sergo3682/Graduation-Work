@@ -33,5 +33,7 @@ class Instance:
             optional = f"model=None, value='{self.value}'"
         return f"{self.__class__.__name__}({self.type}, {self.name}, {self.connections}, {optional})"
 
-    def replace(self):
-        pass #todo
+    def replace_cons(self, old, new):
+        for i in range(len(self.connections)):
+            if self.connections[i] == old:
+                self.connections[i] = new
