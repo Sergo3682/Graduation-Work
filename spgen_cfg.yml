@@ -1,0 +1,12 @@
+pmos: sky130_fd_pr__pfet_g5v0d10v5
+nmos: sky130_fd_pr__nfet_g5v0d10v5
+
+power_pin: VDD
+ground_pin: VSS
+pmos_bulk_pin: NWELL
+nmos_bulk_pin: PWELL
+
+default_pmos_w: 60
+default_pmos_l: 3
+default_nmos_w: 20
+default_nmos_l: 3
