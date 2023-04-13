@@ -1,11 +1,13 @@
 from truthtable import TruthTable
 from bitvector import BitVector
 from net import Net
+from net_walker import NetWalker
 from serialnodes import SerialNodes
 
 
 class SchematicBuilder:
     def __init__(self, input_truth_table: TruthTable):
+        self.bitvector = input_truth_table.out_vec
         self.truth_table = input_truth_table
         self.inverted = False
 
@@ -46,6 +48,7 @@ class SchematicBuilder:
 
             if len(lst) == 1:
                 netlist[idx].node_lists.append(SerialNodes(self.gen_one_line_branch(lst[0], names, network), None))
+                netlist[idx].id = f'{network[5]}{idx}'
                 return
 
             max_name = ''
