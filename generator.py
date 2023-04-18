@@ -128,14 +128,14 @@ class Generator:
             print(self.spice_instances[-1], file=stream)
         return period
 
-    def gen_control(self, tstep, tstop, stream):
+    def gen_control(self, tstep, tstop, out_name, stream):
         print('.control', file=stream)
         print(f'tran {tstep}n {tstop}n', file=stream)
         stream.write('plot')
         for names in self.builder.truth_table.input_names:
             stream.write(' ' + names)
         stream.write('\n')
-        print('plot Q', file=stream)
+        print(f'plot {out_name}', file=stream)
         print('.endc', file=stream)
 
     def gen_out_not(self, gnd, vdd, nmos_bulk, pmos_bulk):
@@ -151,8 +151,7 @@ class Generator:
         pu_not = Instance('X', instance_name, cons, self.pfet)
         self.spice_instances.append(pu_not)
 
-    def generate_subcircuit(self):
-        # print(self.lib, file=self.fd)
+    def generate_subcircuit(self, name):
         gnd = self.cfg["ground_pin"]
         vdd = self.cfg["power_pin"]
         nmos_bulk = self.cfg["nmos_bulk_pin"]
@@ -173,7 +172,7 @@ class Generator:
                 inst.replace_cons(f'{self.pd_root.id}', 'Q')
                 inst.replace_cons(f'{self.pu_root.id}', 'Q')
 
-        self.fd.write(f'.subckt bv_{self.builder.bitvector.val} Q')
+        self.fd.write(f'.subckt bv_{name} Q')
         for i in self.builder.truth_table.input_names:
             self.fd.write(f' {i}')
         print(f' {vdd} {gnd} {nmos_bulk} {pmos_bulk}', file=self.fd)
@@ -187,29 +186,25 @@ class Generator:
         print('.ends', file=self.fd)
         self.fd.close()
 
-    def test_single_subckt(self):
-        vdd= 'VDD'
-        gnd = 'VSS'
-        nmos_bulk = gnd
-        pmos_bulk = vdd
-        fd_test = open(f'test_{self.output_file_name}', 'w')
-        print(self.lib, file=fd_test)
-        print(f'.include {self.output_file_name}', file=fd_test)
-        self.gen_supply(self.cfg["power_pin"], self.cfg["ground_pin"], fd_test)
+    def test_single_subckt(self, out_file, subcircuit_name, nmos_bulk='VSS', pmos_bulk='VDD'):
+        power_pos = self.cfg["power_pin"]
+        power_neg = self.cfg["ground_pin"]
+        print(self.lib, file=out_file)
+        print(f'.include {self.output_file_name}', file=out_file)
+        self.gen_supply(self.cfg["power_pin"], self.cfg["ground_pin"], out_file)
 
-        cons = ['Q']
+        cons = [f'Q_bv_{subcircuit_name}']
         for i in self.builder.truth_table.input_names:
             cons.append(i)
-        cons.append(vdd)
-        cons.append(gnd)
+        cons.append(power_pos)
+        cons.append(power_neg)
         cons.append(nmos_bulk)
         cons.append(pmos_bulk)
-        sbckt = Instance('X', f'S{self.name_idx}', cons, f'bv_{self.builder.bitvector.val}')
+        sbckt = Instance('X', f'S{self.name_idx}', cons, f'bv_{subcircuit_name}')
         self.name_idx += 1
-        print(sbckt, file=fd_test)
+        print(sbckt, file=out_file)
 
-        tstop = self.gen_pulse(self.cfg["ground_pin"], fd_test)
-        fd_test.write('\n')
-        self.gen_control(1, tstop, fd_test)
-        print('.end', file=fd_test)
-        fd_test.close()
+        tstop = self.gen_pulse(self.cfg["ground_pin"], out_file)
+        out_file.write('\n')
+        self.gen_control(1, tstop, f'Q_bv_{subcircuit_name}', out_file)
+        print('.end', file=out_file)
