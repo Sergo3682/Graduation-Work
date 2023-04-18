@@ -1,7 +1,7 @@
 from truthtable import TruthTable
 from bitvector import BitVector
 from net import Net
-from net_walker import NetWalker
+from helpers import two_to_the_power_of
 from serialnodes import SerialNodes
 
 
@@ -170,8 +170,10 @@ class SchematicBuilder:
     @staticmethod
     def complete_set_of_combination(lst: [BitVector]):
         ans = True
+        if len(lst) == 0:
+            return ans
         checker = False
-        for num in range(2**lst[0].size):
+        for num in range(two_to_the_power_of(lst[0].size)):
             for bv in lst:
                 if num == bv.val:
                     checker = True
