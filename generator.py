@@ -11,7 +11,7 @@ class Generator:
         self.output_file_name = self.pd_root = self.pu_root = self.lib = None
         if output_file is not None:
             self.output_file_name = output_file
-            self.fd = open(self.output_file_name, 'w')
+            self.fd = open(self.output_file_name, 'a')
         if builder is not None:
             self.pd_root = builder.pd_netlist[0]
             self.pu_root = builder.pu_netlist[0]
@@ -180,11 +180,12 @@ class Generator:
         for inst in self.spice_instances:
             print(inst, file=self.fd)
 
-        self.fd.write('\n')
+
         self.gen_not(gnd, vdd, nmos_bulk, pmos_bulk)
         print(f'Number of transistors: {self.name_idx}')
         print('.ends', file=self.fd)
-        self.fd.close()
+        self.fd.write('\n')
+        return self.fd
 
     def test_single_subckt(self, out_file, subcircuit_name, nmos_bulk='VSS', pmos_bulk='VDD'):
         power_pos = self.cfg["power_pin"]
