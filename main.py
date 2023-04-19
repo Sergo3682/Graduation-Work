@@ -2,16 +2,16 @@ from truthtable import TruthTable
 from bitvector import BitVector
 from schematicbuilder import SchematicBuilder
 from generator import Generator
-from helpers import log_2
+from helpers import log_2, two_to_the_power_of
 import yaml
 import argparse
 
 
 def gen_input_name(bv_size):
     res = []
-    j = ord('A')
-    for i in range(log_2(bv_size)):
-        res.append(chr(j + i))
+    char_ascii = ord('A')
+    for num in range(log_2(bv_size)):
+        res.append(chr(char_ascii + num))
     return res
 
 def parser_init():
@@ -31,9 +31,6 @@ def parser_init():
                         help='generate subcircuits for a whole library')
     return out_parser
 
-# todo generator_init function
-def generator_init():
-    pass
 
 if __name__ == '__main__':
     parser = parser_init()
@@ -48,6 +45,8 @@ if __name__ == '__main__':
         raise KeyError(f"You can't generate single circuit and whole library at the same time")
 
     elif input_args.gen_cell is not None:
+        fd = open(input_args.out, 'w')
+        fd.close()
         val = int(input_args.gen_cell, 2)
         num_of_inputs = log_2(len(input_args.gen_cell))
         bv = BitVector(val, len(input_args.gen_cell))
@@ -61,11 +60,28 @@ if __name__ == '__main__':
         sb.build_pull_up_network()
 
         gen = Generator(input_args.out, sb, spice_lib, cfg)
-        gen.generate_subcircuit(input_args.gen_cell)
+        fd = gen.generate_subcircuit(f'{hex(val)}_{bv.size}')
+        fd.close()
+
         fd_test = open(f'test.sp', 'w')
-        gen.test_single_subckt(fd_test, input_args.gen_cell)
+        gen.test_single_subckt(fd_test, f'{hex(val)}_{bv.size}')
         fd_test.close()
 
     elif input_args.gen_lib is not None:
+        fd = open(input_args.out, 'w')
+        fd.close()
         max_input = input_args.gen_lib
-        # todo this
+        for i in range(1, max_input + 1):
+            size = two_to_the_power_of(i)
+            for j in range(two_to_the_power_of(size)):
+                bv = BitVector(j, size)
+                tt = TruthTable(bv, gen_input_name(size))
+                sb = SchematicBuilder(tt)
+                sb.build_pull_down_network()
+                sb.build_pull_up_network()
+
+                gen = Generator(input_args.out, sb, spice_lib, cfg)
+                fd = gen.generate_subcircuit(f'{hex(bv.val)}_{bv.size}')
+        fd.close()
+
+        # todo: gen testbench for all subcircuits in lib
