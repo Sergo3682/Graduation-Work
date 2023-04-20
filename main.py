@@ -14,21 +14,48 @@ def gen_input_name(bv_size):
         res.append(chr(char_ascii + num))
     return res
 
+
 def parser_init():
     out_parser = argparse.ArgumentParser(description='Digital library compiler')
-    out_parser.add_argument('-c', '--cfg', type=str, default='spgen_cfg.yml',
-                        help='set custom config file (default: spgen_cfg.yml)')
-    out_parser.add_argument('-o', '--out', type=str, default='netlist.sp',
-                        help='set custom output file (default: netlist.sp)')
-    out_parser.add_argument('--gen_cell', type=str, default=None,
-                        help='generate single cell for custom bitvector')
-    out_parser.add_argument('--input_names', type=str, default=None,
-                        help='set custom input names for a single cell')
-    out_parser.add_argument('-spice_lib_path', '--spice_lib_path', type=str,
-                        default='~/VSU224_Sky130_fd_pr/models/sky130.lib.spice',
-                        help='set custom path to spice library for circuit simulation')
-    out_parser.add_argument('-lib', '--gen_lib', type=int, default=None,
-                        help='generate subcircuits for a whole library')
+    out_parser.add_argument(
+        '-c',
+        '--cfg',
+        type=str,
+        default='spgen_cfg.yml',
+        help='set custom config file (default: spgen_cfg.yml)'
+    )
+    out_parser.add_argument(
+        '-o',
+        '--out',
+        type=str,
+        default='netlist.sp',
+        help='set custom output file (default: netlist.sp)'
+    )
+    out_parser.add_argument(
+        '--gen_cell',
+        type=str,
+        default=None,
+        help='generate single cell for custom bitvector'
+    )
+    out_parser.add_argument(
+        '--input_names',
+        type=str, default=None,
+        help='set custom input names for a single cell'
+    )
+    out_parser.add_argument(
+        '-spice_lib_path',
+        '--spice_lib_path',
+        type=str,
+        default='~/VSU224_Sky130_fd_pr/models/sky130.lib.spice',
+        help='set custom path to spice library for circuit simulation'
+    )
+    out_parser.add_argument(
+        '-lib',
+        '--gen_lib',
+        type=int,
+        default=None,
+        help='generate subcircuits for a whole library'
+    )
     return out_parser
 
 
@@ -83,5 +110,5 @@ if __name__ == '__main__':
                 gen = Generator(input_args.out, sb, spice_lib, cfg)
                 fd = gen.generate_subcircuit(f'{hex(bv.val)}_{bv.size}')
         fd.close()
-
-        # todo: gen testbench for all subcircuits in lib
+    else:
+        parser.print_help()
