@@ -55,6 +55,3 @@ class SchematicDrawer:
             if len(self.list_of_nets[i]) == 0:
                 self.list_of_nets.pop(i)
         self.schematic_assets_list = self.list_of_nets.copy()
-
-    def memes(self):
-        print('купил мужик шляпу, надел, а она ему как раз\n')
