@@ -128,7 +128,8 @@ if __name__ == '__main__':
                 if not sb.is_useless():
                     sb.build_pull_up_network()
                     gen = Generator(input_args.netlist, sb, spice_lib, cfg)
-                    name = cfg['cell_name_tpl'].format(bit_vector=format(j, '#0%db' % (size + 2, )), inputs_num=len(tt.input_names))
+                    name = cfg['cell_name_tpl'].format(bit_vector=format(j, '#0%db' % (size + 2, )),
+                                                       inputs_num=len(tt.input_names))
                     fd = gen.generate_subcircuit(name)
                 else:
                     log.warning(yellow + 'Current cell is useless; passed' + reset)
