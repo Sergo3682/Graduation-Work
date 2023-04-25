@@ -49,3 +49,10 @@ class TruthTable:
     def invert(self):
         new_bit_vector_val = ~self.out_vec.val & ((1 << self.out_vec.size) - 1)
         return self.__class__(BitVector(new_bit_vector_val, self.out_vec.size), self.input_names)
+
+    def comment_spice(self):
+        arr = self.__str__().split('\n')
+        for i in range(len(arr) - 1, -1, -1):
+            arr[i] = arr[i] + '\n'
+            arr.insert(i, '*')
+        return ''.join(arr)
