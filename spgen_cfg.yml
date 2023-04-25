@@ -7,7 +7,16 @@ ground_pin: VSS
 pmos_bulk_pin: NWELL
 nmos_bulk_pin: PWELL
 
+pmos_inst_prefix: XMP
+nmos_inst_prefix: XMN
+
 default_pmos_w: 60
 default_pmos_l: 3
 default_nmos_w: 20
 default_nmos_l: 3
+
+
+#default_pmos_w: 1.8u
+#default_pmos_l: 0.18u
+#default_nmos_w: 0.6u
+#default_nmos_l: 0.18u

@@ -8,6 +8,12 @@ import logging as log
 class Generator:
     def __init__(self, output_file: str, builder: SchematicBuilder, lib: str, config: dict):
         self.cfg = config
+
+        self.pmos_type = config['pmos_inst_prefix'][:1]
+        self.pmos_name = config['pmos_inst_prefix'][1:]
+        self.nmos_type = config['nmos_inst_prefix'][:1]
+        self.nmos_name = config['nmos_inst_prefix'][1:]
+
         self.output_file_name = self.pd_root = self.pu_root = self.lib = None
         if output_file is not None:
             self.output_file_name = output_file
@@ -18,8 +24,8 @@ class Generator:
             self.builder = builder
         if lib is not None:
             self.lib = '.lib ' + lib + ' tt'
-            self.nfet = config["nmos"] + f' w={config["default_nmos_w"]}' + f' l={config["default_nmos_l"]}'
-            self.pfet = config["pmos"] + f' w={config["default_pmos_w"]}' + f' l={config["default_pmos_l"]}'
+        self.nfet = config["nmos"] + f' w={config["default_nmos_w"]}' + f' l={config["default_nmos_l"]}'
+        self.pfet = config["pmos"] + f' w={config["default_pmos_w"]}' + f' l={config["default_pmos_l"]}'
         self.spice_instances = []
         self.not_list = []
         self.name_idx = 0
@@ -46,54 +52,54 @@ class Generator:
         else:
             return name
 
-    def spice_instances_filling(self, current_net: Net, bulk, supply_pin, model):
+    def spice_instances_filling(self, current_net: Net, mos_type, mos_name, bulk, supply_pin, model):
         for i in range(len(current_net.node_lists)):
             if self.is_single_instance(current_net.node_lists[i]):
-                name = f'M{self.name_idx}'
+                name = f'{mos_name}{self.name_idx}'
                 nxt_net = self.get_next_net(current_net.node_lists[i], supply_pin)
                 tran_name = self.not_converting(current_net.node_lists[i].nodes[0])
                 cons = [current_net.id, tran_name, nxt_net, bulk]
                 self.name_idx += 1
-                self.spice_instances.append(Instance('X', name, cons, model))
+                self.spice_instances.append(Instance(f'{mos_type}', name, cons, model))
             else:
                 for inst in current_net.node_lists[i].nodes:
                     if current_net.node_lists[i].nodes.index(inst) == 0:
-                        name = f'M{self.name_idx}'
+                        name = f'{mos_name}{self.name_idx}'
                         self.name_idx += 1
                         nxt_net = current_net.id + '1'
                         tran_name = self.not_converting(inst)
                         cons = [current_net.id, tran_name, nxt_net, bulk]
-                        self.spice_instances.append(Instance('X', name, cons, model))
+                        self.spice_instances.append(Instance(f'{mos_type}', name, cons, model))
                     elif current_net.node_lists[i].nodes.index(inst) == len(current_net.node_lists[i].nodes) - 1:
-                        name = f'M{self.name_idx}'
+                        name = f'{mos_name}{self.name_idx}'
                         self.name_idx += 1
                         nxt_net = self.get_next_net(current_net.node_lists[i], supply_pin)
                         tran_name = self.not_converting(inst)
                         cons = [current_net.id + f'{current_net.node_lists[i].nodes.index(inst)}', tran_name, nxt_net,
                                 bulk]
-                        self.spice_instances.append(Instance('X', name, cons, model))
+                        self.spice_instances.append(Instance(f'{mos_type}', name, cons, model))
                     else:
-                        name = f'M{self.name_idx}'
+                        name = f'{mos_name}{self.name_idx}'
                         self.name_idx += 1
                         nxt_net = current_net.id + f'{current_net.node_lists[i].nodes.index(inst) + 1}'
                         tran_name = self.not_converting(inst)
                         cons = [current_net.id + f'{current_net.node_lists[i].nodes.index(inst)}', tran_name, nxt_net,
                                 bulk]
-                        self.spice_instances.append(Instance('X', name, cons, model))
+                        self.spice_instances.append(Instance(f'{mos_type}', name, cons, model))
 
     def gen_not(self, gnd, vdd, nmos_bulk, pmos_bulk):
         for name in self.not_list:
-            instance_name = f'M{self.name_idx}'
+            instance_name = f'{self.nmos_name}{self.name_idx}'
             self.name_idx += 1
             cons = [name, name[1:], gnd, nmos_bulk]
-            pd_not = Instance('X', instance_name, cons, self.nfet)
+            pd_not = Instance(f'{self.nmos_type}', instance_name, cons, self.nfet)
             self.spice_instances.append(pd_not)
             print(pd_not, file=self.fd)
 
-            instance_name = f'M{self.name_idx}'
+            instance_name = f'{self.pmos_name}{self.name_idx}'
             self.name_idx += 1
             cons = [name, name[1:], vdd, pmos_bulk]
-            pu_not = Instance('X', instance_name, cons, self.pfet)
+            pu_not = Instance(f'{self.pmos_type}', instance_name, cons, self.pfet)
             self.spice_instances.append(pu_not)
             print(pu_not, file=self.fd)
 
@@ -139,16 +145,16 @@ class Generator:
         print('.endc', file=stream)
 
     def gen_out_not(self, gnd, vdd, nmos_bulk, pmos_bulk):
-        instance_name = f'M{self.name_idx}'
+        instance_name = f'{self.nmos_name}{self.name_idx}'
         self.name_idx += 1
         cons = ['Q', 'nQ', gnd, nmos_bulk]
-        pd_not = Instance('X', instance_name, cons, self.nfet)
+        pd_not = Instance(f'{self.nmos_type}', instance_name, cons, self.nfet)
         self.spice_instances.append(pd_not)
 
-        instance_name = f'M{self.name_idx}'
+        instance_name = f'{self.pmos_name}{self.name_idx}'
         self.name_idx += 1
         cons = ['Q', 'nQ', vdd, pmos_bulk]
-        pu_not = Instance('X', instance_name, cons, self.pfet)
+        pu_not = Instance(f'{self.pmos_type}', instance_name, cons, self.pfet)
         self.spice_instances.append(pu_not)
 
     def generate_subcircuit(self, name):
@@ -159,9 +165,11 @@ class Generator:
         pmos_bulk = self.cfg["pmos_bulk_pin"]
         nw = NetWalker()
         nw.walk(self.pd_root, sn_action_fn=None, sn_fn_kwargs=None, net_action_fn=self.spice_instances_filling,
-                net_fn_kwargs={'bulk': nmos_bulk, 'supply_pin': gnd, 'model': self.nfet})
+                net_fn_kwargs={'mos_type': self.nmos_type, 'mos_name': self.nmos_name,
+                               'bulk': nmos_bulk, 'supply_pin': gnd, 'model': self.nfet})
         nw.walk(self.pu_root, sn_action_fn=None, sn_fn_kwargs=None, net_action_fn=self.spice_instances_filling,
-                net_fn_kwargs={'bulk': pmos_bulk, 'supply_pin': vdd, 'model': self.pfet})
+                net_fn_kwargs={'mos_type': self.pmos_type, 'mos_name': self.pmos_name,
+                               'bulk': pmos_bulk, 'supply_pin': vdd, 'model': self.pfet})
 
         if self.builder.inverted:
             for inst in self.spice_instances:
