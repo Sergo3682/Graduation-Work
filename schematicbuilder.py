@@ -3,11 +3,14 @@ from bitvector import BitVector
 from net import Net
 from helpers import two_to_the_power_of
 from serialnodes import SerialNodes
+from net_walker import NetWalker
+import logging as log
 
 
 class SchematicBuilder:
     def __init__(self, input_truth_table: TruthTable):
         self.bitvector = input_truth_table.out_vec
+        self.old_truth_table = input_truth_table
         self.truth_table = input_truth_table
         self.inverted = False
 
@@ -16,6 +19,7 @@ class SchematicBuilder:
 
         self.pd_netlist = [Net()]
         self.pu_netlist = [Net()]
+        log.debug(f'{self.__class__.__name__}: BitVector: {self.bitvector}')
 
     def calc_in_bits_leading_to_res(self, out_val):
         rows_list = self.truth_table.get_rows_by_value(out_val)
@@ -30,7 +34,7 @@ class SchematicBuilder:
     def is_inverting_needed(self):
         n00, n10 = self.calc_in_bits_leading_to_res(0)
         n01, n11 = self.calc_in_bits_leading_to_res(1)
-        return not (n01 + n10) > (n00 + n11)
+        return (n01 + n10) < (n00 + n11)
 
     @staticmethod
     def list_of_tuples_to_list_of_bitvectors(lst: list):
@@ -189,16 +193,18 @@ class SchematicBuilder:
                     node.next_net = None
 
     def build_pull_down_network(self):
+        log.debug('Building pull-down network...')
         if self.is_inverting_needed():
             self.truth_table = self.truth_table.invert()
             self.inverted = True
-            print('INVERTED!!!!!!!!')
+            log.info('Inversion is needed')
         original_row_list = self.list_of_tuples_to_list_of_bitvectors(self.truth_table.get_rows_by_value(0))
         cp_list = original_row_list.copy()
         self.algorithm(cp_list, self.input_names, 0, 'pull_down')
         self.next_net_fixer(self.pd_netlist)
 
     def build_pull_up_network(self):
+        log.debug('Building pull-up network...')
         original_row_list = self.list_of_tuples_to_list_of_bitvectors(self.truth_table.get_rows_by_value(1))
         cp_list = original_row_list.copy()
         self.algorithm(cp_list, self.input_names, 0, 'pull_up')
@@ -213,3 +219,24 @@ class SchematicBuilder:
             for inst in sn.nodes:
                 if inst[0] == '!' and inst[1:] not in res_lst:
                     res_lst.append(inst[1:])
+
+    @staticmethod
+    def is_name_in_serial_node(sn: SerialNodes, name: str, prev_checker: list):
+        for node in sn.nodes:
+            prev_checker[-1] = prev_checker[-1] or (name in node)
+
+    def is_useless(self):
+        checker = []
+        nw = NetWalker()
+        for name in self.input_names:
+            checker.append(False)
+            nw.walk(
+                net=self.pd_netlist[0],
+                sn_action_fn=self.is_name_in_serial_node,
+                sn_fn_kwargs={'name': name, 'prev_checker': checker}
+            )
+        res = True
+        for statement in checker:
+            res = res and statement
+        return not res
+
