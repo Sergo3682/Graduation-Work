@@ -22,8 +22,10 @@ def print_partial_truth_table(list_of_tuples: list):
         i += 1
     print(res_str)
 
+
 def insert(source_str, insert_str, pos):
     return source_str[:pos] + insert_str + source_str[pos:]
+
 
 def two_to_the_power_of(n):
         return 2 << (n - 1)
