@@ -44,7 +44,7 @@ class NodeImage:
         width = 3
         for i in self.assets:
             for j in range(len(i)):
-                i[j] = ' ' * width + '@' + i[j]
+                i[j] = ' ' * width + ' ' + i[j]
 
     def print_node(self):
         for i in self.assets:
