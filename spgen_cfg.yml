@@ -1,6 +1,7 @@
 pmos: sky130_fd_pr__pfet_g5v0d10v5
 nmos: sky130_fd_pr__nfet_g5v0d10v5
 
+cell_name_tpl: cell_{bit_vector}_{inputs_num}_bu
 power_pin: VDD
 ground_pin: VSS
 pmos_bulk_pin: NWELL
