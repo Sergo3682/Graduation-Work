@@ -3,7 +3,7 @@ from serialnodes import SerialNodes
 from net import Net
 from elems import Instance
 from net_walker import NetWalker
-
+import logging as log
 
 class Generator:
     def __init__(self, output_file: str, builder: SchematicBuilder, lib: str, config: dict):
@@ -152,6 +152,7 @@ class Generator:
         self.spice_instances.append(pu_not)
 
     def generate_subcircuit(self, name):
+        print(self.builder.old_truth_table.comment_spice(), file=self.fd)
         gnd = self.cfg["ground_pin"]
         vdd = self.cfg["power_pin"]
         nmos_bulk = self.cfg["nmos_bulk_pin"]
@@ -172,7 +173,7 @@ class Generator:
                 inst.replace_cons(f'{self.pd_root.id}', 'Q')
                 inst.replace_cons(f'{self.pu_root.id}', 'Q')
 
-        self.fd.write(f'.subckt bv_{name} Q')
+        self.fd.write(f'.subckt {name} Q')
         for i in self.builder.truth_table.input_names:
             self.fd.write(f' {i}')
         print(f' {vdd} {gnd} {nmos_bulk} {pmos_bulk}', file=self.fd)
@@ -180,9 +181,8 @@ class Generator:
         for inst in self.spice_instances:
             print(inst, file=self.fd)
 
-
         self.gen_not(gnd, vdd, nmos_bulk, pmos_bulk)
-        print(f'Number of transistors: {self.name_idx}')
+        log.info(f'Number of transistors needed: {self.name_idx}')
         print('.ends', file=self.fd)
         self.fd.write('\n')
         return self.fd
@@ -194,18 +194,18 @@ class Generator:
         print(f'.include {self.output_file_name}', file=out_file)
         self.gen_supply(self.cfg["power_pin"], self.cfg["ground_pin"], out_file)
 
-        cons = [f'Q_bv_{subcircuit_name}']
+        cons = [f'Q_{subcircuit_name}']
         for i in self.builder.truth_table.input_names:
             cons.append(i)
         cons.append(power_pos)
         cons.append(power_neg)
         cons.append(nmos_bulk)
         cons.append(pmos_bulk)
-        sbckt = Instance('X', f'S{self.name_idx}', cons, f'bv_{subcircuit_name}')
+        sbckt = Instance('X', f'S{self.name_idx}', cons, f'{subcircuit_name}')
         self.name_idx += 1
         print(sbckt, file=out_file)
 
         tstop = self.gen_pulse(self.cfg["ground_pin"], out_file)
         out_file.write('\n')
-        self.gen_control(1, tstop, f'Q_bv_{subcircuit_name}', out_file)
+        self.gen_control(1, tstop, f'Q_{subcircuit_name}', out_file)
         print('.end', file=out_file)
