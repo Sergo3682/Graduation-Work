@@ -1,5 +1,5 @@
-pmos: sky130_fd_pr__pfet_g5v0d10v5
-nmos: sky130_fd_pr__nfet_g5v0d10v5
+pmos: sky130_fd_pr__pfet_01v8
+nmos: sky130_fd_pr__nfet_01v8
 
 cell_name_tpl: cell_{bit_vector}_{inputs_num}_bu
 power_pin: VDD
@@ -10,10 +10,10 @@ nmos_bulk_pin: PWELL
 pmos_inst_prefix: XMP
 nmos_inst_prefix: XMN
 
-default_pmos_w: 60
-default_pmos_l: 3
-default_nmos_w: 20
-default_nmos_l: 3
+default_pmos_w: 1.8
+default_pmos_l: 0.18
+default_nmos_w: 0.6
+default_nmos_l: 0.18
 
 
 #default_pmos_w: 1.8u
