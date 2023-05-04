@@ -5,6 +5,7 @@ from elems import Instance
 from net_walker import NetWalker
 import logging as log
 
+
 class Generator:
     def __init__(self, output_file: str, builder: SchematicBuilder, lib: str, config: dict):
         self.cfg = config
@@ -107,7 +108,7 @@ class Generator:
         vdd_name = f'{self.name_idx}'
         self.name_idx += 1
         cons = [vdd, '0']
-        val = 'DC 5'
+        val = 'DC 1.8'
         vdd = Instance('V', vdd_name, cons, model=None, value=val)
         self.spice_instances.append(vdd)
         print(vdd, file=stream)
@@ -129,7 +130,7 @@ class Generator:
             name = f'in{i_n}{self.name_idx}'
             self.name_idx += 1
             cons = [i_n, gnd]
-            val = f'PULSE (0 5 {pw}n 2n 2n {pw}n {period}n)'
+            val = f'PULSE (0 1.8 {pw}n 2n 2n {pw}n {period}n)'
             self.spice_instances.append(Instance('V', name, cons, model=None, value=val))
             print(self.spice_instances[-1], file=stream)
         return period
@@ -209,9 +210,9 @@ class Generator:
         cons.append(power_neg)
         cons.append(nmos_bulk)
         cons.append(pmos_bulk)
-        sbckt = Instance('X', f'S{self.name_idx}', cons, f'{subcircuit_name}')
+        subckt = Instance('X', f'S{self.name_idx}', cons, f'{subcircuit_name}')
         self.name_idx += 1
-        print(sbckt, file=out_file)
+        print(subckt, file=out_file)
 
         tstop = self.gen_pulse(self.cfg["ground_pin"], out_file)
         out_file.write('\n')

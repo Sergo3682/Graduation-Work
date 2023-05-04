@@ -34,8 +34,8 @@ def parser_init():
         '--out',
         dest='netlist',
         type=str,
-        default='netlist.sp',
-        help='set output netlist file (default: netlist.sp)'
+        default='netlist.lib',
+        help='set output netlist file (default: netlist.lib)'
     )
     out_parser.add_argument(
         '--gen_cell',
