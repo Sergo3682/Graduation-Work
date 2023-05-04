@@ -49,6 +49,11 @@ class SchematicBuilder:
                 netlist = self.pd_netlist
             elif network == 'pull_up':
                 netlist = self.pu_netlist
+            if self.is_complete_set_with(lst, network):
+                for inst in names:
+                    netlist[idx].node_lists.append(SerialNodes(inst, None))
+                netlist[idx].id = f'{network[5]}{idx}'
+                return
 
             if len(lst) == 1:
                 netlist[idx].node_lists.append(SerialNodes(self.gen_one_line_branch(lst[0], names, network), None))
@@ -185,6 +190,19 @@ class SchematicBuilder:
             checker = False
         return ans
 
+    def is_complete_set_with(self, lst: [BitVector], network: str):
+        size = lst[0].size
+        my_lst = lst.copy()
+        if network == 'pull_down':
+            additional_bv = BitVector(0, size)
+            my_lst.append(additional_bv)
+            return self.complete_set_of_combination(my_lst)
+        elif network == 'pull_up':
+            value = two_to_the_power_of(size) - 1
+            additional_bv = BitVector(value, size)
+            my_lst.append(additional_bv)
+            return self.complete_set_of_combination(my_lst)
+
     @staticmethod
     def next_net_fixer(lst):
         for net in lst:
@@ -239,4 +257,3 @@ class SchematicBuilder:
         for statement in checker:
             res = res and statement
         return not res
-
