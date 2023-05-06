@@ -1,0 +1,65 @@
+
+Note: No compatibility mode selected!
+
+
+Circuit: * test for cell_00010111_3_bu
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Note: include: has no value, DC 0 assumed
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+sky130_fd_pr__esd_nfet_05v0_nvt.pm3               0
+                                             0
+vdd                                        1.8
+vss                                          0
+q                                          1.8
+a                                            0
+xdut.d1                              0.0105066
+xdut.na                                    1.8
+xdut.d01                               1.38405
+b                                            0
+xdut.d02                             0.0116461
+c                                            0
+xdut.u1                                    1.8
+xdut.u01                                   1.8
+xdut.u02                                   1.8
+vina#branch                                  0
+vinb#branch                                  0
+vinc#branch                                  0
+vvss#branch                         8.3644e-12
+vvdd#branch                       -8.36404e-12
+
+
+No. of Data Rows : 477
+
+  Measurements for Transient Analysis
+
+v0                  =  1.800000e+00
+v1                  =  1.800001e+00
+v2                  =  1.799954e+00
+v3                  =  4.574467e-06
+v4                  =  1.800189e+00
+v5                  =  5.426176e-05
+v6                  =  5.426349e-06
+v7                  =  6.329072e-06
+
+
+Total analysis time (seconds) = 0.02
+
+Total elapsed time (seconds) = 6.146 
+
+Total DRAM available = 7823.047 MB.
+DRAM currently available =  198.707 MB.
+Maximum ngspice program size =  410.434 MB.
+Current ngspice program size =  331.992 MB.
+
+Shared ngspice pages =   10.195 MB.
+Text (code) pages =    6.852 MB.
+Stack = 0 bytes.
+Library pages =  330.336 MB.
+
