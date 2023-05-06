@@ -4,6 +4,7 @@ from truthtable import TruthTable
 from bitvector import BitVector
 from schematicbuilder import SchematicBuilder
 from generator import Generator
+from test_bench import Tester
 from helpers import log_2, two_to_the_power_of
 import yaml
 import argparse
@@ -112,6 +113,8 @@ if __name__ == '__main__':
 
         gen.test_single_subckt(fd_test, name)
         fd_test.close()
+        MY_TEST = Tester(name, spice_lib, input_args.netlist, input_names)
+        MY_TEST.gen_tb_file()
 
     elif input_args.max_inputs is not None:
         log.info(f'Generating library with maximum inputs num {input_args.max_inputs}...')
