@@ -195,26 +195,3 @@ class Generator:
         print('.ends', file=self.fd)
         self.fd.write('\n')
         return self.fd
-
-    def test_single_subckt(self, out_file, subcircuit_name, nmos_bulk='VSS', pmos_bulk='VDD'):
-        power_pos = self.cfg["power_pin"]
-        power_neg = self.cfg["ground_pin"]
-        print(self.lib, file=out_file)
-        print(f'.include {self.output_file_name}', file=out_file)
-        self.gen_supply(self.cfg["power_pin"], self.cfg["ground_pin"], out_file)
-
-        cons = [f'Q_{subcircuit_name}']
-        for i in self.builder.truth_table.input_names:
-            cons.append(i)
-        cons.append(power_pos)
-        cons.append(power_neg)
-        cons.append(nmos_bulk)
-        cons.append(pmos_bulk)
-        subckt = Instance('X', f'S{self.name_idx}', cons, f'{subcircuit_name}')
-        self.name_idx += 1
-        print(subckt, file=out_file)
-
-        tstop = self.gen_pulse(self.cfg["ground_pin"], out_file)
-        out_file.write('\n')
-        self.gen_control(1, tstop, f'Q_{subcircuit_name}', out_file)
-        print('.end', file=out_file)
