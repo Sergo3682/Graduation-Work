@@ -1,10 +1,13 @@
 from string import Template
-import os
+import subprocess
 import re
+from bitvector import BitVector
+import logging as log
 
 
 class Tester:
-    def __init__(self, subckt: str, parent_lib, my_lib, input_names):
+    def __init__(self, subckt: str, parent_lib, my_lib, input_names, bitvector: BitVector):
+        self.bv = bitvector
         self.subckt = subckt
         self.input_names = input_names.copy()
         self.input_names.reverse()
@@ -49,19 +52,41 @@ class Tester:
         self.sub['meas'] = res
 
     def run_batch(self):
-        os.system(f'ngspice -b {self.path}{self.tb_name} -o {self.path}{self.log_name}')
+        log.info('Running ngspice in batch mode...')
+        temp = subprocess.check_output(f'ngspice -b {self.path}{self.tb_name} -o {self.path}{self.log_name}', shell=True)
 
     def get_results(self):
         fd = open(f'{self.path}{self.log_name}', 'r')
         lines = ''.join(fd.readlines())
-        res = re.findall(r'v[0-9]+.+=.{2}[0-9]+.[0-9]+.+', lines)
+        res = re.findall(r'v[0-9]+.+=\s{2}.?[0-9]+.[0-9]+.+', lines)
         for r in res:
             name = re.search(r'v[0-9]+', r).group(0)
-            val = re.search(r'\s{2}[0-9].+', r).group(0)
-            self.vout[name] = round(float(val), 1)
-        print(self.vout)
+            val = re.search(r'\s{2}.?[0-9].+', r).group(0)
 
-    def gen_tb_file(self):
+            if abs(round(float(val), 1)) == float(self.sub['vdd']):
+                self.vout[name] = '1'
+            elif abs(round(float(val))) == 0:
+                self.vout[name] = '0'
+
+    def get_new_bv(self):
+        res = ''
+        for d in self.vout:
+            res = self.vout[d] + res
+        res = '0b' + res
+        return BitVector(int(res, 2), len(self.vout))
+
+    def comparing(self, bv):
+        log.info('Comparing original bitvector with results...')
+        green = '\x1b[0;32m'
+        reset = "\x1b[0m"
+        red = '\x1b[1;31m'
+        if self.bv == bv:
+            log.info(f'{green}The comparison was successful!{reset}')
+        else:
+            log.warning(f'{red}The comparison was unsuccessful.{reset}')
+
+    def test_bench(self):
+        log.info('Creating test bench file...')
         fd = open(f'{self.path}{self.tb_name}', 'w')
         res = Template(
             '* Test for $subckt\n\n'
@@ -89,3 +114,4 @@ class Tester:
         fd.close()
         self.run_batch()
         self.get_results()
+        self.comparing(self.get_new_bv())
