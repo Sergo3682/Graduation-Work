@@ -21,7 +21,7 @@ def gen_input_name(bv_size):
 
 
 def parser_init():
-    out_parser = argparse.ArgumentParser(description='Standard Cell Digital Library Compiler')
+    out_parser = argparse.ArgumentParser(description='Standard Cell Digital Library Compiler', allow_abbrev=False)
     out_parser.add_argument(
         '-c',
         '--config',
@@ -64,6 +64,13 @@ def parser_init():
         type=int,
         default=None,
         help='generate subcircuits for a whole library'
+    )
+    out_parser.add_argument(
+        '--test_bench',
+        dest='test_bench',
+        action='store_true',
+        default=False,
+        help='testing library for compatibility'
     )
     return out_parser
 
@@ -109,12 +116,9 @@ if __name__ == '__main__':
         fd = gen.generate_subcircuit(name)
         fd.close()
 
-        fd_test = open(f'test.sp', 'w')
-
-        gen.test_single_subckt(fd_test, name)
-        fd_test.close()
-        MY_TEST = Tester(name, spice_lib, input_args.netlist, input_names)
-        MY_TEST.gen_tb_file()
+        if input_args.test_bench:
+            tb = Tester(name, spice_lib, input_args.netlist, input_names, bv)
+            tb.test_bench()
 
     elif input_args.max_inputs is not None:
         log.info(f'Generating library with maximum inputs num {input_args.max_inputs}...')
@@ -125,7 +129,8 @@ if __name__ == '__main__':
             size = two_to_the_power_of(i)
             for j in range(two_to_the_power_of(size)):
                 bv = BitVector(j, size)
-                tt = TruthTable(bv, gen_input_name(size))
+                input_names = gen_input_name(size)
+                tt = TruthTable(bv, input_names)
                 sb = SchematicBuilder(tt)
                 sb.build_pull_down_network()
                 if not sb.is_useless():
@@ -134,8 +139,12 @@ if __name__ == '__main__':
                     name = cfg['cell_name_tpl'].format(bit_vector=format(j, '#0%db' % (size + 2, )),
                                                        inputs_num=len(tt.input_names))
                     fd = gen.generate_subcircuit(name)
+                    fd.close()
+
+                    if input_args.test_bench:
+                        tb = Tester(name, spice_lib, input_args.netlist, input_names, bv)
+                        tb.test_bench()
                 else:
                     log.warning(yellow + 'Current cell is useless; passed' + reset)
-        fd.close()
     else:
         parser.print_help()
