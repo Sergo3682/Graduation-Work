@@ -1,0 +1,58 @@
+
+Note: No compatibility mode selected!
+
+
+Circuit: * test for cell_0b1001_2_bu
+
+Doing analysis at TEMP = 27.000000 and TNOM = 27.000000
+
+Note: include: has no value, DC 0 assumed
+
+Initial Transient Solution
+--------------------------
+
+Node                                   Voltage
+----                                   -------
+sky130_fd_pr__esd_nfet_05v0_nvt.pm3               0
+                                             0
+vdd                                        1.8
+vss                                          0
+q                                          1.8
+a                                            0
+xdut.d1                             8.7625e-11
+xdut.na                                    1.8
+xdut.d01                               1.38388
+b                                            0
+xdut.nb                                    1.8
+xdut.u1                                    1.8
+xdut.u01                                   1.8
+vina#branch                                  0
+vinb#branch                                  0
+vvss#branch                          1.028e-11
+vvdd#branch                       -1.02799e-11
+
+
+No. of Data Rows : 247
+
+  Measurements for Transient Analysis
+
+v0                  =  1.800000e+00
+v1                  =  6.265324e-06
+v2                  =  3.743594e-06
+v3                  =  1.799925e+00
+
+
+Total analysis time (seconds) = 0.012
+
+Total elapsed time (seconds) = 6.551 
+
+Total DRAM available = 7823.031 MB.
+DRAM currently available = 3109.355 MB.
+Maximum ngspice program size =  410.375 MB.
+Current ngspice program size =  332.371 MB.
+
+Shared ngspice pages =   10.633 MB.
+Text (code) pages =    6.852 MB.
+Stack = 0 bytes.
+Library pages =  330.277 MB.
+
